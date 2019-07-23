@@ -4,6 +4,18 @@ import pandas as pd
 from tensorflow import keras
 from tensorflow.keras import layers
 
+wordBag = {}
+
+#Turns a string into a sequence of integers
+def encode_text(text):
+  result = []
+  
+  for token in text.split():
+    result.append(wordBag[token])
+    
+  return result
+
+
 #Get the Magic Card dataset from the SQL Database
 sql_conn = pyodbc.connect('DRIVER={ODBC Driver 13 for SQL Server}; SERVER=localhost\SQLEXPRESS; DATABASE=MagicCards;Trusted_Connection=yes')
 query = "SELECT CardId, Name, RulesText, CMC, Power, Toughness, Type, Rating FROM Cards"
@@ -15,12 +27,16 @@ types = dataset.pop('Type')
 #Remove the emdash
 types = types.str.replace(" — ", " ")
 
-print(types)
-#types_bow = {}
+wordIndex = 10
 
-#for token in types.str.split():
-#  types_bow[token] = 1
+for row in types.str.split():
+  for token in row:
+    wordBag[token] = wordIndex
+    wordIndex += 1
 
-#sorted(types_bow.items())
+typesInt = []
+#Turn all the types to integers
+for row in types:
+  typesInt.append(encode_text(row))
 
-#df = pd.DataFrame(pdf.Series(dict([(token, 1) for token in dataset['RulesText'].split()])), columns=['sent']).T
+print(typesInt)
