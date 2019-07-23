@@ -23,9 +23,11 @@ sql_conn = pyodbc.connect('DRIVER={ODBC Driver 13 for SQL Server}; SERVER=localh
 query = "SELECT Name, RulesText, CMC, Power, Toughness, Type, Rating FROM Cards"
 dataset = pd.read_sql(query, sql_conn)
 
-#Only include cards with a CMC of <= 20
-#Because GleeMax HAS A CMC OF 1000000 AND IT THROWS OFF THE MATH COME ON GUYS.
+#Remove cards with values that are way out of line (I'm looking at YOU silver bordered)
+#Only include cards with a CMC of <= 20 Because GleeMax HAS A CMC OF 1000000 AND IT THROWS OFF THE MATH COME ON GUYS.
 dataset = dataset[dataset.CMC <= 20]
+#Only include cards with a rating of < 5 because Storm Crow has a rating of 6. Because of course it does
+dataset = dataset[dataset.Rating <= 5]
 
 
 #Build the vocabulary from Type
