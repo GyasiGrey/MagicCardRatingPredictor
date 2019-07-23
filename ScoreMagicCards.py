@@ -7,13 +7,17 @@ from tensorflow.keras import layers
 wordBag = {}
 wordBag["<PAD>"] = 0
 wordBag["<UNUSED>"] = 1
+wordBag["<UNKNOWN>"] = 2
 
 #Turns a string into a sequence of integers
 def encode_text(text):
   result = []
   
   for token in text.split():
-    result.append(wordBag[token])
+    if token in wordBag:
+      result.append(wordBag[token])
+    else
+      result.append(wordBag["<UNKNOWN>"])
     
   return result
 
