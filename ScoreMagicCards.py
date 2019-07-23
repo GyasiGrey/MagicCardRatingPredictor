@@ -39,4 +39,7 @@ typesInt = []
 for row in types:
   typesInt.append(encode_text(row))
 
-print(typesInt)
+#Add the types as integers
+dataset['Type'] = typesInt
+
+print(dataset)
