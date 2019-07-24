@@ -16,7 +16,7 @@ def encode_text(text):
   for token in text.split():
     if token in wordBag:
       result.append(wordBag[token])
-    else
+    else:
       result.append(wordBag["<UNKNOWN>"])
     
   return result
