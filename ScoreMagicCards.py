@@ -194,7 +194,8 @@ print(test_labels)
 print("Predictions")
 print(test_predictions)
 
-test_predictions = model.predict(normed_test_data).flatten()
+#test_predictions = model.predict(normed_test_data).flatten()
+test_predictions = model.predict(test_dataset).flatten()
 
 plt.scatter(test_labels, test_predictions)
 plt.xlabel('True Values [MPG]')
