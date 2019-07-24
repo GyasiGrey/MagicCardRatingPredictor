@@ -3,6 +3,7 @@ import tensorflow as tf
 import pandas as pd
 from tensorflow import keras
 from tensorflow.keras import layers
+import matplotlib.pyplot as plt
 
 wordBag = {}
 wordBag["<PAD>"] = 0
@@ -24,7 +25,7 @@ def encode_text(text):
 
 #Get the Magic Card dataset from the SQL Database
 sql_conn = pyodbc.connect('DRIVER={ODBC Driver 13 for SQL Server}; SERVER=localhost\SQLEXPRESS; DATABASE=MagicCards;Trusted_Connection=yes')
-query = "SELECT Name, RulesText, CMC, Power, Toughness, Type, Rating FROM Cards"
+query = "SELECT Name, RulesText, CMC, Power, Toughness, Type, Rating FROM Cards WHERE (Power IS NULL OR ISNUMERIC(Power) = 1) AND (Toughness IS NULL OR ISNUMERIC(Toughness) = 1)"
 dataset = pd.read_sql(query, sql_conn)
 
 #Remove cards with values that are way out of line (I'm looking at YOU silver bordered)
@@ -110,6 +111,11 @@ dataset['Name'] = namesInt
 #Add the rules as integers
 dataset['RulesText'] = rulesInt
 
+
+dataset.pop('Type')
+dataset.pop('Name')
+dataset.pop('RulesText')
+
 #Split out the train and test data
 train_dataset = dataset.sample(frac=0.8, random_state=0)
 test_dataset = dataset.drop(train_dataset.index)
@@ -145,7 +151,8 @@ def build_model():
   model.compile(loss='mean_squared_error', optimizer=optimizer, metrics=['mean_absolute_error', 'mean_squared_error'])
   
   return model
-  
+
+
 model = build_model()
 
 EPOCHS = 1000
@@ -186,3 +193,16 @@ print(test_labels)
 
 print("Predictions")
 print(test_predictions)
+
+test_predictions = model.predict(normed_test_data).flatten()
+
+plt.scatter(test_labels, test_predictions)
+plt.xlabel('True Values [MPG]')
+plt.ylabel('Predictions [MPG]')
+plt.axis('equal')
+plt.axis('square')
+plt.xlim([0,plt.xlim()[1]])
+plt.ylim([0,plt.ylim()[1]])
+_ = plt.plot([-100, 100], [-100, 100])
+
+plt.show()
