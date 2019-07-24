@@ -25,7 +25,7 @@ def encode_text(text):
 
 #Get the Magic Card dataset from the SQL Database
 sql_conn = pyodbc.connect('DRIVER={ODBC Driver 13 for SQL Server}; SERVER=localhost\SQLEXPRESS; DATABASE=MagicCards;Trusted_Connection=yes')
-query = "SELECT Name, RulesText, CMC, Power, Toughness, Type, Rating FROM Cards WHERE (Power IS NULL OR ISNUMERIC(Power) = 1) AND (Toughness IS NULL OR ISNUMERIC(Toughness) = 1)"
+query = "SELECT Name, RulesText, CMC, CAST(Power AS INT) AS Power, CAST(Toughness AS INT) AS Toughness, Type, Rating FROM Cards WHERE (Power IS NULL OR ISNUMERIC(Power) = 1) AND (Toughness IS NULL OR ISNUMERIC(Toughness) = 1) AND Power NOT LIKE '%.%' AND Toughness NOT LIKE '%.%'"
 dataset = pd.read_sql(query, sql_conn)
 
 #Remove cards with values that are way out of line (I'm looking at YOU silver bordered)
@@ -133,9 +133,8 @@ test_labels = test_dataset.pop('Rating')
 def norm(x):
   return (x - train_stats['mean']) / train_stats['std']
 
-#OH NO: no normed data  
-#normed_train_data = norm(train_dataset)
-#normed_test_data = norm(test_dataset)
+normed_train_data = norm(train_dataset)
+normed_test_data = norm(test_dataset)
 
 
 #build the model
@@ -166,8 +165,7 @@ class PrintDot(keras.callbacks.Callback):
 #Stop early
 early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
 
-#history = model.fit(normed_train_data, train_labels, epochs=EPOCHS, validation_split = 0.2, verbose = 0, callbacks=[early_stop, PrintDot()])
-history = model.fit(train_dataset, train_labels, epochs=EPOCHS, validation_split = 0.2, verbose = 0, callbacks=[early_stop, PrintDot()])
+history = model.fit(normed_train_data, train_labels, epochs=EPOCHS, validation_split = 0.2, verbose = 0, callbacks=[early_stop, PrintDot()])
 
 
 
@@ -180,11 +178,9 @@ example_result = model.predict(example_batch)
 hist = pd.DataFrame(history.history)
 hist['epoch'] = history.epoch
 
-#test_predictions = model.predict(normed_test_data).flatten()
-test_predictions = model.predict(test_dataset).flatten()
+test_predictions = model.predict(normed_test_data).flatten()
 
-#loss, mae, mse = model.evaluate(normed_test_data, test_labels, verbose = 0)
-loss, mae, mse = model.evaluate(test_dataset, test_labels, verbose = 0)
+loss, mae, mse = model.evaluate(normed_test_data, test_labels, verbose = 0)
 
 print("Testing set Mean Abs Error: {:5.2f}".format(mae))
 
@@ -194,8 +190,7 @@ print(test_labels)
 print("Predictions")
 print(test_predictions)
 
-#test_predictions = model.predict(normed_test_data).flatten()
-test_predictions = model.predict(test_dataset).flatten()
+test_predictions = model.predict(normed_test_data).flatten()
 
 plt.scatter(test_labels, test_predictions)
 plt.xlabel('True Values [MPG]')
